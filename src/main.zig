@@ -27,7 +27,7 @@ fn ForthInterpreter(comptime STACK_SIZE: usize) type {
             self.sp -= 1;
             return self.stack[self.sp];
         }
-        fn push(self: *Self, v: i64) void {
+        pub fn push(self: *Self, v: i64) void {
             self.stack[self.sp] = v;
             self.sp += 1;
         }
@@ -38,8 +38,7 @@ fn ForthInterpreter(comptime STACK_SIZE: usize) type {
 }
 
 test "run" {
-    const code = [_][]const u8{ "1", "2", "+" };
     var vm = ForthInterpreter(5).init();
-    try vm.run(code[0..]);
+    try vm.run(([_][]const u8{ "1", "2", "+" })[0..]);
     try std.testing.expect(vm.top() == 3);
 }
