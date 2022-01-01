@@ -1,5 +1,5 @@
 const std = @import("std");
-const mem = std.mem;
+const eql = std.mem.eql;
 
 fn ForthInterpreter(comptime STACK_SIZE: usize) type {
     return struct {
@@ -11,23 +11,23 @@ fn ForthInterpreter(comptime STACK_SIZE: usize) type {
         }
         pub fn run(self: *Self, codes: []const []const u8) !void {
             for (codes) |code| {
-                if (mem.eql(u8, code, "+")) {
+                if (eql(u8, code, "+")) {
                     const r = self.pop();
                     const l = self.pop();
                     self.push(l + r);
-                } else if (mem.eql(u8, code, "-")) {
+                } else if (eql(u8, code, "-")) {
                     const r = self.pop();
                     const l = self.pop();
                     self.push(l - r);
-                } else if (mem.eql(u8, code, "*")) {
+                } else if (eql(u8, code, "*")) {
                     const r = self.pop();
                     const l = self.pop();
                     self.push(l * r);
-                } else if (mem.eql(u8, code, "/")) {
+                } else if (eql(u8, code, "/")) {
                     const r = self.pop();
                     const l = self.pop();
                     self.push(@divTrunc(l, r));
-                } else if (mem.eql(u8, code, "bye")) {
+                } else if (eql(u8, code, "bye")) {
                     return;
                 } else {
                     const v = try std.fmt.parseInt(i64, code, 10);
