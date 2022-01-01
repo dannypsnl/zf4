@@ -1,7 +1,11 @@
 const std = @import("std");
 const eql = std.mem.eql;
 
-fn ForthInterpreter(comptime STACK_SIZE: usize) type {
+pub const InterpreterError = error{
+    Bye,
+};
+
+pub fn ForthInterpreter(comptime STACK_SIZE: usize) type {
     return struct {
         const Self = @This();
         stack: [STACK_SIZE]i64 = [_]i64{0} ** STACK_SIZE,
@@ -28,7 +32,7 @@ fn ForthInterpreter(comptime STACK_SIZE: usize) type {
                     const l = self.pop();
                     self.push(@divTrunc(l, r));
                 } else if (eql(u8, code, "bye")) {
-                    return;
+                    return InterpreterError.Bye;
                 } else {
                     const v = try std.fmt.parseInt(i64, code, 10);
                     self.push(v);
