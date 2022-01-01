@@ -12,13 +12,21 @@ fn ForthInterpreter(comptime STACK_SIZE: usize) type {
         pub fn run(self: *Self, codes: []const []const u8) !void {
             for (codes) |code| {
                 if (mem.eql(u8, code, "+")) {
-                    const l = self.pop();
                     const r = self.pop();
+                    const l = self.pop();
                     self.push(l + r);
                 } else if (mem.eql(u8, code, "-")) {
                     const r = self.pop();
                     const l = self.pop();
                     self.push(l - r);
+                } else if (mem.eql(u8, code, "*")) {
+                    const r = self.pop();
+                    const l = self.pop();
+                    self.push(l * r);
+                } else if (mem.eql(u8, code, "/")) {
+                    const r = self.pop();
+                    const l = self.pop();
+                    self.push(@divTrunc(l, r));
                 } else {
                     const v = try std.fmt.parseInt(i64, code, 10);
                     self.push(v);
@@ -40,10 +48,14 @@ fn ForthInterpreter(comptime STACK_SIZE: usize) type {
     };
 }
 
-test "run" {
+test "arith" {
     var vm = ForthInterpreter(5).init();
     try vm.run(([_][]const u8{ "1", "2", "+" })[0..]);
     try std.testing.expect(vm.top() == 3);
     try vm.run(([_][]const u8{ "1", "-" })[0..]);
     try std.testing.expect(vm.top() == 2);
+    try vm.run(([_][]const u8{ "3", "*" })[0..]);
+    try std.testing.expect(vm.top() == 6);
+    try vm.run(([_][]const u8{ "2", "/" })[0..]);
+    try std.testing.expect(vm.top() == 3);
 }
