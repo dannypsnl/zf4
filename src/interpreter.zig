@@ -27,6 +27,8 @@ fn ForthInterpreter(comptime STACK_SIZE: usize) type {
                     const r = self.pop();
                     const l = self.pop();
                     self.push(@divTrunc(l, r));
+                } else if (mem.eql(u8, code, "bye")) {
+                    return;
                 } else {
                     const v = try std.fmt.parseInt(i64, code, 10);
                     self.push(v);
@@ -34,15 +36,15 @@ fn ForthInterpreter(comptime STACK_SIZE: usize) type {
             }
         }
 
-        pub fn pop(self: *Self) i64 {
+        fn pop(self: *Self) i64 {
             self.sp -= 1;
             return self.stack[self.sp];
         }
-        pub fn push(self: *Self, v: i64) void {
+        fn push(self: *Self, v: i64) void {
             self.stack[self.sp] = v;
             self.sp += 1;
         }
-        pub fn top(self: *Self) i64 {
+        fn top(self: *Self) i64 {
             return self.stack[0];
         }
     };
