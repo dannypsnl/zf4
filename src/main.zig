@@ -6,7 +6,7 @@ const STACK_SIZE: usize = 20000;
 var stack = [_]i64{0} ** STACK_SIZE;
 
 var sp: usize = 0;
-fn run(codes: [3][]const u8) std.fmt.ParseIntError!void {
+fn run(codes: []const []const u8) std.fmt.ParseIntError!void {
     for (codes) |code| {
         if (std.mem.eql(u8, code, "+")) {
             const l = pop();
@@ -33,6 +33,6 @@ fn top() i64 {
 
 test "run" {
     const code = [_][]const u8{ "1", "2", "+" };
-    try run(code);
+    try run(code[0..]);
     try std.testing.expect(top() == 3);
 }
