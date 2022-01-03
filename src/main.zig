@@ -15,24 +15,27 @@ pub fn main() anyerror!void {
 
     const first = args.nextPosix();
     if (first == null) {
-        try repl();
+        try runStream(stdin);
+        try stdout.print("\n", .{});
     } else if (eql(u8, "compile", first.?)) {
         // compile a file
         std.debug.print("say compile!\n", .{});
     } else {
         // seems like a file!
-        std.debug.print("run file isn't implemented yet!\n", .{});
+        var file = try std.fs.cwd().openFile(first.?, .{});
+        defer file.close();
+
+        try runStream(file.reader());
     }
 }
 
-fn repl() !void {
+fn runStream(reader: std.io.Reader(std.fs.File, std.os.ReadError, std.fs.File.read)) !void {
     var vm = Forth(2000).init();
-    var buf: [120]u8 = undefined;
+    var buf: [1024]u8 = undefined;
 
     while (true) {
-        const code = (try stdin.readUntilDelimiterOrEof(buf[0..], '\n')) orelse {
-            // No input, probably CTRL-d (EOF).
-            try stdout.print("\n", .{});
+        const code = (try reader.readUntilDelimiterOrEof(buf[0..], '\n')) orelse {
+            // No input, probably CTRL-d/EOF.
             return;
         };
         if (vm.run(code)) {} else |err| switch (err) {
