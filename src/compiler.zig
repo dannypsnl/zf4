@@ -88,38 +88,39 @@ pub fn compile(file: std.fs.File) !void {
         while (wordIt != null) : (wordIt = words.next()) {
             const word = wordIt.?;
             if (eql(u8, word, "+")) {
-                current_offset += 2 * wordsize;
+                current_offset += wordsize;
                 try w.print(
                     \\ldp x0, x1, [sp, {}]
                     \\add x0, x0, x1
                     \\str x0, [sp, {}]
                     \\
-                , .{ current_offset - wordsize, current_offset });
+                , .{ current_offset, current_offset + wordsize });
             } else if (eql(u8, word, "-")) {
-                current_offset += 2 * wordsize;
+                current_offset += wordsize;
                 try w.print(
                     \\ldp x0, x1, [sp, {}]
                     \\sub x0, x0, x1
                     \\str x0, [sp, {}]
                     \\
-                , .{ current_offset - wordsize, current_offset });
+                , .{ current_offset, current_offset + wordsize });
             } else if (eql(u8, word, "*")) {
-                current_offset += 2 * wordsize;
+                current_offset += wordsize;
                 try w.print(
                     \\ldp x0, x1, [sp, {}]
                     \\mul x0, x0, x1
                     \\str x0, [sp, {}]
                     \\
-                , .{ current_offset - wordsize, current_offset });
+                , .{ current_offset, current_offset + wordsize });
             } else if (eql(u8, word, "/")) {
-                current_offset += 2 * wordsize;
+                current_offset += wordsize;
                 try w.print(
                     \\ldp x0, x1, [sp, {}]
                     \\sdiv x0, x0, x1
                     \\str x0, [sp, {}]
                     \\
-                , .{ current_offset - wordsize, current_offset });
+                , .{ current_offset, current_offset + wordsize });
             } else if (eql(u8, word, ".")) {
+                current_offset += wordsize;
                 try w.print(
                     \\ldr x0, [sp, {}]
                     \\stp x29, x30, [sp, 8]
@@ -128,7 +129,6 @@ pub fn compile(file: std.fs.File) !void {
                     \\ldp x29, x30, [sp, 8]
                     \\
                 , .{current_offset});
-                current_offset += wordsize;
             } else {
                 const v = try std.fmt.parseInt(i64, word, 10);
                 try w.print(
