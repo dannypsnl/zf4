@@ -90,7 +90,7 @@ pub fn compile(file: std.fs.File) !void {
                     current_offset += wordsize;
                     try w.print(
                         \\ldp x0, x1, [sp, {}]
-                        \\add x0, x0, x1
+                        \\add x0, x1, x0
                         \\str x0, [sp, {}]
                         \\
                     , .{ current_offset, current_offset + wordsize });
@@ -99,7 +99,7 @@ pub fn compile(file: std.fs.File) !void {
                     current_offset += wordsize;
                     try w.print(
                         \\ldp x0, x1, [sp, {}]
-                        \\sub x0, x0, x1
+                        \\sub x0, x1, x0
                         \\str x0, [sp, {}]
                         \\
                     , .{ current_offset, current_offset + wordsize });
@@ -108,7 +108,7 @@ pub fn compile(file: std.fs.File) !void {
                     current_offset += wordsize;
                     try w.print(
                         \\ldp x0, x1, [sp, {}]
-                        \\mul x0, x0, x1
+                        \\mul x0, x1, x0
                         \\str x0, [sp, {}]
                         \\
                     , .{ current_offset, current_offset + wordsize });
@@ -117,7 +117,7 @@ pub fn compile(file: std.fs.File) !void {
                     current_offset += wordsize;
                     try w.print(
                         \\ldp x0, x1, [sp, {}]
-                        \\sdiv x0, x0, x1
+                        \\sdiv x0, x1, x0
                         \\str x0, [sp, {}]
                         \\
                     , .{ current_offset, current_offset + wordsize });
