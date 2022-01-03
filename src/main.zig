@@ -5,6 +5,7 @@ const eql = std.mem.eql;
 const interpreter = @import("./interpreter.zig");
 const Forth = interpreter.ForthInterpreter;
 const ForthError = interpreter.InterpreterError;
+const compile = @import("./compiler.zig").compile;
 
 pub fn main() anyerror!void {
     var args = std.process.args();
@@ -18,8 +19,10 @@ pub fn main() anyerror!void {
         try runStream(stdin);
         try stdout.print("\n", .{});
     } else if (eql(u8, "compile", first.?)) {
-        // compile a file
-        std.debug.print("say compile!\n", .{});
+        const must_a_file = args.nextPosix().?;
+        var file = try std.fs.cwd().openFile(must_a_file, .{});
+        defer file.close();
+        try compile(file);
     } else {
         // seems like a file!
         var file = try std.fs.cwd().openFile(first.?, .{});
@@ -34,7 +37,7 @@ fn runStream(reader: std.io.Reader(std.fs.File, std.os.ReadError, std.fs.File.re
     var buf: [1024]u8 = undefined;
 
     while (true) {
-        const code = (try reader.readUntilDelimiterOrEof(buf[0..], '\n')) orelse {
+        const code = (try reader.readUntilDelimiterOrEof(&buf, '\n')) orelse {
             // No input, probably CTRL-d/EOF.
             return;
         };
