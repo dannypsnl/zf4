@@ -37,6 +37,9 @@ pub fn ForthInterpreter(comptime STACK_SIZE: usize) type {
                     self.push(@divTrunc(l, r));
                 } else if (eql(u8, word, ".")) {
                     try stdout.print("{} ", .{self.top()});
+                    _ = self.pop();
+                } else if (eql(u8, word, ".s")) {
+                    try stdout.print("{} ", .{self.top()});
                 } else if (eql(u8, word, "bye")) {
                     return InterpreterError.Bye;
                 } else {
