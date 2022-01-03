@@ -21,33 +21,44 @@ pub fn compile(file: std.fs.File) !void {
         \\.global printNumberEntry
         \\printNumberEntry:
         // asked two words on stack
-        \\    sub  sp, sp, #16
+        \\    sub sp, sp, #16
+        \\    mov x16, #10
+        \\    mov x12, x0
         \\printNumber:
-        \\    mov  x16, #10
-        \\    udiv x14, x12, x16
-        \\    msub x13, x14, x16, x12
-        \\    sub  x12, x12, x13
+        // number = x12
+        // x13 = x12 / 10
+        \\    udiv x13, x12, x16
+        // x13 = x13 * 10 - x12
+        \\    msub x13, x13, x16, x12
+        // x12 = x12 - x13
+        \\    sub x12, x12, x13
+        // x12 = x12 / 10
         \\    udiv x12, x12, x16
         // digit to string
-        \\    add  x13, x13, #48
+        \\    add x13, x13, #48
         \\    strb w13, [sp]
         // print part
-        \\    mov  x0,  #1
-        \\    mov  x1,  sp
-        \\    mov  x2,  #1
-        \\    mov  w8,  #64
-        \\    svc  #0
+        // fd(x0) = 1(stdout)
+        \\    mov x0, #1
+        // buf(x1) = sp
+        \\    mov x1, sp
+        // len(x2) = 1
+        \\    mov x2, #1
+        // Unix write system call
+        \\    mov x16, #4
+        \\    svc #0
         // loop part
-        \\    cmp  x12, #0
-        \\    beq  exit
-        \\    b    printNumber
+        \\    cmp x12, #0
+        \\    b.eq exit
+        \\    b printNumber
         \\exit:
         // put used stack back
-        \\    add  sp, sp, #16
+        \\    add sp, sp, #16
         \\    ret
         \\
         \\.global _start
         \\_start:
+        \\entry:
         \\
     , .{});
 
@@ -65,39 +76,38 @@ pub fn compile(file: std.fs.File) !void {
         while (wordIt != null) : (wordIt = words.next()) {
             const word = wordIt.?;
             if (eql(u8, word, "+")) {
+                current_offset += 2 * wordsize;
                 try w.print(
                     \\ldp x0, x1, [sp, {}]
                     \\add x0, x0, x1
                     \\str x0, [sp, {}]
                     \\
-                , .{ current_offset, current_offset + 2 * wordsize });
-                current_offset += wordsize;
+                , .{ current_offset - wordsize, current_offset });
             } else if (eql(u8, word, "-")) {
+                current_offset += 2 * wordsize;
                 try w.print(
                     \\ldp x0, x1, [sp, {}]
                     \\sub x0, x0, x1
                     \\str x0, [sp, {}]
                     \\
-                , .{ current_offset, current_offset + 2 * wordsize });
-                current_offset += wordsize;
+                , .{ current_offset - wordsize, current_offset });
             } else if (eql(u8, word, "*")) {
+                current_offset += 2 * wordsize;
                 try w.print(
                     \\ldp x0, x1, [sp, {}]
                     \\mul x0, x0, x1
                     \\str x0, [sp, {}]
                     \\
-                , .{ current_offset, current_offset + 2 * wordsize });
-                current_offset += wordsize;
+                , .{ current_offset - wordsize, current_offset });
             } else if (eql(u8, word, "/")) {
+                current_offset += 2 * wordsize;
                 try w.print(
                     \\ldp x0, x1, [sp, {}]
                     \\sdiv x0, x0, x1
                     \\str x0, [sp, {}]
                     \\
-                , .{ current_offset, current_offset + 2 * wordsize });
-                current_offset += wordsize;
+                , .{ current_offset - wordsize, current_offset });
             } else if (eql(u8, word, ".")) {
-                current_offset += wordsize;
                 try w.print(
                     \\ldr x0, [sp, {}]
                     \\stp x29, x30, [sp, 8]
@@ -105,6 +115,7 @@ pub fn compile(file: std.fs.File) !void {
                     \\ldp x29, x30, [sp, 8]
                     \\
                 , .{current_offset});
+                current_offset += wordsize;
             } else {
                 const v = try std.fmt.parseInt(i64, word, 10);
                 try w.print(
