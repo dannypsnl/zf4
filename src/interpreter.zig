@@ -1,6 +1,6 @@
 const std = @import("std");
 const stdout = std.io.getStdOut().writer();
-const eql = std.mem.eql;
+const Word = @import("./word.zig").Word;
 
 pub const InterpreterError = error{
     Bye,
@@ -18,33 +18,42 @@ pub fn ForthInterpreter(comptime STACK_SIZE: usize) type {
             var words = std.mem.tokenize(u8, code, " ");
             var wordIt = words.next();
             while (wordIt != null) : (wordIt = words.next()) {
-                const word = wordIt.?;
-                if (eql(u8, word, "+")) {
-                    const r = self.pop();
-                    const l = self.pop();
-                    self.push(l + r);
-                } else if (eql(u8, word, "-")) {
-                    const r = self.pop();
-                    const l = self.pop();
-                    self.push(l - r);
-                } else if (eql(u8, word, "*")) {
-                    const r = self.pop();
-                    const l = self.pop();
-                    self.push(l * r);
-                } else if (eql(u8, word, "/")) {
-                    const r = self.pop();
-                    const l = self.pop();
-                    self.push(@divTrunc(l, r));
-                } else if (eql(u8, word, ".")) {
-                    try stdout.print("{} ", .{self.top()});
-                    _ = self.pop();
-                } else if (eql(u8, word, ".s")) {
-                    try stdout.print("{} ", .{self.top()});
-                } else if (eql(u8, word, "bye")) {
-                    return InterpreterError.Bye;
-                } else {
-                    const v = try std.fmt.parseInt(i64, word, 10);
-                    self.push(v);
+                const word = Word.fromString(wordIt.?);
+                switch (word) {
+                    .plus => {
+                        const r = self.pop();
+                        const l = self.pop();
+                        self.push(l + r);
+                    },
+                    .sub => {
+                        const r = self.pop();
+                        const l = self.pop();
+                        self.push(l - r);
+                    },
+                    .mul => {
+                        const r = self.pop();
+                        const l = self.pop();
+                        self.push(l * r);
+                    },
+                    .div => {
+                        const r = self.pop();
+                        const l = self.pop();
+                        self.push(@divTrunc(l, r));
+                    },
+                    .pop => {
+                        try stdout.print("{} ", .{self.top()});
+                        _ = self.pop();
+                    },
+                    .print => {
+                        try stdout.print("{} ", .{self.top()});
+                    },
+                    .bye => {
+                        return InterpreterError.Bye;
+                    },
+                    .not => {
+                        const v = try std.fmt.parseInt(i64, wordIt.?, 10);
+                        self.push(v);
+                    },
                 }
             }
             try stdout.print("ok\n", .{});

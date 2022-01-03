@@ -1,5 +1,6 @@
 const std = @import("std");
 const eql = std.mem.eql;
+const Word = @import("./word.zig").Word;
 
 pub fn compile(file: std.fs.File) !void {
     var asm_f = try std.fs.cwd().createFile(
@@ -77,66 +78,81 @@ pub fn compile(file: std.fs.File) !void {
     while (true) {
         const code = (try file.reader().readUntilDelimiterOrEof(&buf, '\n')) orelse {
             // No input, probably CTRL-d/EOF.
-            try w.print(
-                \\ret
-                \\
-            , .{});
+            try w.print("ret\n", .{});
             return;
         };
         var words = std.mem.tokenize(u8, code, " ");
         var wordIt = words.next();
         while (wordIt != null) : (wordIt = words.next()) {
-            const word = wordIt.?;
-            if (eql(u8, word, "+")) {
-                current_offset += wordsize;
-                try w.print(
-                    \\ldp x0, x1, [sp, {}]
-                    \\add x0, x0, x1
-                    \\str x0, [sp, {}]
-                    \\
-                , .{ current_offset, current_offset + wordsize });
-            } else if (eql(u8, word, "-")) {
-                current_offset += wordsize;
-                try w.print(
-                    \\ldp x0, x1, [sp, {}]
-                    \\sub x0, x0, x1
-                    \\str x0, [sp, {}]
-                    \\
-                , .{ current_offset, current_offset + wordsize });
-            } else if (eql(u8, word, "*")) {
-                current_offset += wordsize;
-                try w.print(
-                    \\ldp x0, x1, [sp, {}]
-                    \\mul x0, x0, x1
-                    \\str x0, [sp, {}]
-                    \\
-                , .{ current_offset, current_offset + wordsize });
-            } else if (eql(u8, word, "/")) {
-                current_offset += wordsize;
-                try w.print(
-                    \\ldp x0, x1, [sp, {}]
-                    \\sdiv x0, x0, x1
-                    \\str x0, [sp, {}]
-                    \\
-                , .{ current_offset, current_offset + wordsize });
-            } else if (eql(u8, word, ".")) {
-                current_offset += wordsize;
-                try w.print(
-                    \\ldr x0, [sp, {}]
-                    \\stp x29, x30, [sp, 8]
-                    \\bl printNumberEntry
-                    \\bl newline
-                    \\ldp x29, x30, [sp, 8]
-                    \\
-                , .{current_offset});
-            } else {
-                const v = try std.fmt.parseInt(i64, word, 10);
-                try w.print(
-                    \\mov x0, {}
-                    \\str x0, [sp, {}]
-                    \\
-                , .{ v, current_offset });
-                current_offset -= wordsize;
+            const word = Word.fromString(wordIt.?);
+            switch (word) {
+                .plus => {
+                    current_offset += wordsize;
+                    try w.print(
+                        \\ldp x0, x1, [sp, {}]
+                        \\add x0, x0, x1
+                        \\str x0, [sp, {}]
+                        \\
+                    , .{ current_offset, current_offset + wordsize });
+                },
+                .sub => {
+                    current_offset += wordsize;
+                    try w.print(
+                        \\ldp x0, x1, [sp, {}]
+                        \\sub x0, x0, x1
+                        \\str x0, [sp, {}]
+                        \\
+                    , .{ current_offset, current_offset + wordsize });
+                },
+                .mul => {
+                    current_offset += wordsize;
+                    try w.print(
+                        \\ldp x0, x1, [sp, {}]
+                        \\mul x0, x0, x1
+                        \\str x0, [sp, {}]
+                        \\
+                    , .{ current_offset, current_offset + wordsize });
+                },
+                .div => {
+                    current_offset += wordsize;
+                    try w.print(
+                        \\ldp x0, x1, [sp, {}]
+                        \\sdiv x0, x0, x1
+                        \\str x0, [sp, {}]
+                        \\
+                    , .{ current_offset, current_offset + wordsize });
+                },
+                .pop => {
+                    current_offset += wordsize;
+                    try w.print(
+                        \\ldr x0, [sp, {}]
+                        \\stp x29, x30, [sp, 8]
+                        \\bl printNumberEntry
+                        \\bl newline
+                        \\ldp x29, x30, [sp, 8]
+                        \\
+                    , .{current_offset});
+                },
+                .print => {
+                    try w.print(
+                        \\ldr x0, [sp, {}]
+                        \\stp x29, x30, [sp, 8]
+                        \\bl printNumberEntry
+                        \\bl newline
+                        \\ldp x29, x30, [sp, 8]
+                        \\
+                    , .{current_offset + wordsize});
+                },
+                .bye => try w.print("ret\n", .{}),
+                .not => {
+                    const v = try std.fmt.parseInt(i64, wordIt.?, 10);
+                    try w.print(
+                        \\mov x0, {}
+                        \\str x0, [sp, {}]
+                        \\
+                    , .{ v, current_offset });
+                    current_offset -= wordsize;
+                },
             }
         }
     }
