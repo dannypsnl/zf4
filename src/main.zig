@@ -6,6 +6,10 @@ const Forth = interpreter.ForthInterpreter;
 const ForthError = interpreter.InterpreterError;
 
 pub fn main() anyerror!void {
+    try repl();
+}
+
+fn repl() !void {
     var vm = Forth(2000).init();
     var buf: [120]u8 = undefined;
 
