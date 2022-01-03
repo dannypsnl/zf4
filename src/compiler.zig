@@ -56,6 +56,19 @@ pub fn compile(file: std.fs.File) !void {
         \\    add sp, sp, #16
         \\    ret
         \\
+        \\.global newline
+        \\newline:
+        \\    sub sp, sp, #16
+        \\    mov x0, #10
+        \\    strb w0, [sp]
+        \\    mov x0, #1
+        \\    mov x1, sp
+        \\    mov x2, #1
+        \\    mov x16, #4
+        \\    svc #0
+        \\    add sp, sp, #16
+        \\    ret
+        \\
         \\.global _start
         \\_start:
         \\entry:
@@ -112,6 +125,7 @@ pub fn compile(file: std.fs.File) !void {
                     \\ldr x0, [sp, {}]
                     \\stp x29, x30, [sp, 8]
                     \\bl printNumberEntry
+                    \\bl newline
                     \\ldp x29, x30, [sp, 8]
                     \\
                 , .{current_offset});
