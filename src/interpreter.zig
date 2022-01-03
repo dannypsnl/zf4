@@ -41,8 +41,7 @@ pub fn ForthInterpreter(comptime STACK_SIZE: usize) type {
                         self.push(@divTrunc(l, r));
                     },
                     .pop => {
-                        try stdout.print("{} ", .{self.top()});
-                        _ = self.pop();
+                        try stdout.print("{} ", .{self.pop()});
                     },
                     .print => {
                         try stdout.print("{} ", .{self.top()});
