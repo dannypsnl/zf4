@@ -25,6 +25,13 @@ pub fn compile(file: std.fs.File) !void {
         \\    sub sp, sp, #16
         \\    mov x15, #10
         \\    mov x12, x0
+        // print prepare
+        // fd(x0) = 1(stdout)
+        \\    mov x0, #1
+        // len(x2) = 1
+        \\    mov x2, #1
+        // Unix write system call
+        \\    mov x16, #4
         \\printNumber:
         // number = x12
         // x14 = x12 / 10
@@ -37,35 +44,19 @@ pub fn compile(file: std.fs.File) !void {
         // digit to string
         \\    add x13, x13, #48
         \\    strb w13, [sp]
-        // print part
-        // fd(x0) = 1(stdout)
-        \\    mov x0, #1
         // buf(x1) = sp
         \\    mov x1, sp
-        // len(x2) = 1
-        \\    mov x2, #1
-        // Unix write system call
-        \\    mov x16, #4
         \\    svc #0
         // loop part
         \\    cmp x12, #0
         \\    b.eq exit
         \\    b printNumber
         \\exit:
-        // put used stack back
-        \\    add sp, sp, #16
-        \\    ret
-        \\
-        \\.global newline
-        \\newline:
-        \\    sub sp, sp, #16
-        \\    mov x0, #10
-        \\    strb w0, [sp]
-        \\    mov x0, #1
+        \\    mov x13, #10
+        \\    strb w13, [sp]
         \\    mov x1, sp
-        \\    mov x2, #1
-        \\    mov x16, #4
         \\    svc #0
+        // put used stack back
         \\    add sp, sp, #16
         \\    ret
         \\
@@ -128,7 +119,6 @@ pub fn compile(file: std.fs.File) !void {
                         \\ldr x0, [sp, {}]
                         \\stp x29, x30, [sp, 8]
                         \\bl printNumberEntry
-                        \\bl newline
                         \\ldp x29, x30, [sp, 8]
                         \\
                     , .{current_offset});
@@ -138,7 +128,6 @@ pub fn compile(file: std.fs.File) !void {
                         \\ldr x0, [sp, {}]
                         \\stp x29, x30, [sp, 8]
                         \\bl printNumberEntry
-                        \\bl newline
                         \\ldp x29, x30, [sp, 8]
                         \\
                     , .{current_offset + wordsize});
