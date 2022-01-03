@@ -22,18 +22,18 @@ pub fn compile(file: std.fs.File) !void {
         \\printNumberEntry:
         // asked two words on stack
         \\    sub sp, sp, #16
-        \\    mov x16, #10
+        \\    mov x15, #10
         \\    mov x12, x0
         \\printNumber:
         // number = x12
         // x13 = x12 / 10
-        \\    udiv x13, x12, x16
+        \\    udiv x13, x12, x15
         // x13 = x13 * 10 - x12
-        \\    msub x13, x13, x16, x12
+        \\    msub x13, x13, x15, x12
         // x12 = x12 - x13
         \\    sub x12, x12, x13
         // x12 = x12 / 10
-        \\    udiv x12, x12, x16
+        \\    udiv x12, x12, x15
         // digit to string
         \\    add x13, x13, #48
         \\    strb w13, [sp]
