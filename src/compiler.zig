@@ -21,8 +21,6 @@ pub fn compile(file: std.fs.File) !void {
         \\
         \\.global printNumberEntry
         \\printNumberEntry:
-        // asked two words on stack
-        \\    sub sp, sp, #16
         \\    mov x15, #10
         \\    mov x12, x0
         // print prepare
@@ -32,7 +30,9 @@ pub fn compile(file: std.fs.File) !void {
         \\    mov x2, #1
         // Unix write system call
         \\    mov x16, #4
-        \\printNumber:
+        // x17 for store shift
+        \\    mov x17, #0
+        \\save_loop:
         // number = x12
         // x14 = x12 / 10
         // now x14 is rounded-down quotient of x12
@@ -43,21 +43,24 @@ pub fn compile(file: std.fs.File) !void {
         \\    mov x12, x14
         // digit to string
         \\    add x13, x13, #48
-        \\    strb w13, [sp]
-        // buf(x1) = sp
-        \\    mov x1, sp
-        \\    svc #0
+        \\    strb w13, [sp, x17]
+        \\    sub x17, x17, #4
         // loop part
         \\    cmp x12, #0
+        \\    b.eq print_loop
+        \\    b save_loop
+        \\print_loop:
+        \\    add x17, x17, #4
+        \\    add x1, sp, x17
+        \\    svc #0
+        \\    cmp x17, #0
         \\    b.eq exit
-        \\    b printNumber
+        \\    b print_loop
         \\exit:
         \\    mov x13, #10
         \\    strb w13, [sp]
         \\    mov x1, sp
         \\    svc #0
-        // put used stack back
-        \\    add sp, sp, #16
         \\    ret
         \\
         \\.global _start
@@ -135,7 +138,7 @@ pub fn compile(file: std.fs.File) !void {
                 .bye => try w.print("ret\n", .{}),
                 .int => |v| {
                     try w.print(
-                        \\mov x0, {}
+                        \\mov x0, #{}
                         \\str x0, [sp, {}]
                         \\
                     , .{ v, current_offset });
