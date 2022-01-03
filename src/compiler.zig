@@ -84,7 +84,7 @@ pub fn compile(file: std.fs.File) !void {
         var words = std.mem.tokenize(u8, code, " ");
         var wordIt = words.next();
         while (wordIt != null) : (wordIt = words.next()) {
-            const word = Word.fromString(wordIt.?);
+            const word = try Word.fromString(wordIt.?);
             switch (word) {
                 .plus => {
                     current_offset += wordsize;
@@ -144,8 +144,7 @@ pub fn compile(file: std.fs.File) !void {
                     , .{current_offset + wordsize});
                 },
                 .bye => try w.print("ret\n", .{}),
-                .not => {
-                    const v = try std.fmt.parseInt(i64, wordIt.?, 10);
+                .int => |v| {
                     try w.print(
                         \\mov x0, {}
                         \\str x0, [sp, {}]

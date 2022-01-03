@@ -18,7 +18,7 @@ pub fn ForthInterpreter(comptime STACK_SIZE: usize) type {
             var words = std.mem.tokenize(u8, code, " ");
             var wordIt = words.next();
             while (wordIt != null) : (wordIt = words.next()) {
-                const word = Word.fromString(wordIt.?);
+                const word = try Word.fromString(wordIt.?);
                 switch (word) {
                     .plus => {
                         const r = self.pop();
@@ -49,8 +49,7 @@ pub fn ForthInterpreter(comptime STACK_SIZE: usize) type {
                     .bye => {
                         return InterpreterError.Bye;
                     },
-                    .not => {
-                        const v = try std.fmt.parseInt(i64, wordIt.?, 10);
+                    .int => |v| {
                         self.push(v);
                     },
                 }

@@ -1,7 +1,7 @@
 const std = @import("std");
 const eql = std.mem.eql;
 
-pub const Word = enum {
+pub const WordTag = enum {
     plus,
     sub,
     mul,
@@ -9,8 +9,18 @@ pub const Word = enum {
     pop,
     print,
     bye,
-    not,
-    pub fn fromString(word: []const u8) Word {
+    int,
+};
+pub const Word = union(WordTag) {
+    plus: void,
+    sub: void,
+    mul: void,
+    div: void,
+    pop: void,
+    print: void,
+    bye: void,
+    int: i64,
+    pub fn fromString(word: []const u8) !Word {
         if (eql(u8, word, "+")) {
             return .plus;
         } else if (eql(u8, word, "-")) {
@@ -26,7 +36,7 @@ pub const Word = enum {
         } else if (eql(u8, word, "bye")) {
             return .bye;
         } else {
-            return .not;
+            return Word{ .int = try std.fmt.parseInt(i64, word, 10) };
         }
     }
 };
