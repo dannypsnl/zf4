@@ -17,9 +17,10 @@ pub fn compile(file: std.fs.File) !void {
     try w.print(
         \\.text
         \\.p2align 2
-        \\.global _main
         \\
+        \\.global printNumberEntry
         \\printNumberEntry:
+        // asked two words on stack
         \\    sub  sp, sp, #16
         \\printNumber:
         \\    mov  x16, #10
@@ -27,26 +28,36 @@ pub fn compile(file: std.fs.File) !void {
         \\    msub x13, x14, x16, x12
         \\    sub  x12, x12, x13
         \\    udiv x12, x12, x16
+        // digit to string
         \\    add  x13, x13, #48
         \\    strb w13, [sp]
+        // print part
         \\    mov  x0,  #1
         \\    mov  x1,  sp
         \\    mov  x2,  #1
         \\    mov  w8,  #64
         \\    svc  #0
+        // loop part
         \\    cmp  x12, #0
         \\    beq  exit
         \\    b    printNumber
         \\exit:
+        // put used stack back
         \\    add  sp, sp, #16
         \\    ret
         \\
-        \\_main:
+        \\.global _start
+        \\_start:
         \\
     , .{});
+
     while (true) {
         const code = (try file.reader().readUntilDelimiterOrEof(&buf, '\n')) orelse {
             // No input, probably CTRL-d/EOF.
+            try w.print(
+                \\ret
+                \\
+            , .{});
             return;
         };
         var words = std.mem.tokenize(u8, code, " ");
@@ -86,7 +97,7 @@ pub fn compile(file: std.fs.File) !void {
                 , .{ current_offset, current_offset + 2 * wordsize });
                 current_offset += wordsize;
             } else if (eql(u8, word, ".")) {
-                current_offset -= wordsize;
+                current_offset += wordsize;
                 try w.print(
                     \\ldr x0, [sp, {}]
                     \\stp x29, x30, [sp, 8]
