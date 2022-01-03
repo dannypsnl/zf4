@@ -15,6 +15,8 @@ zf4 compile <file>
 clang -Wl,-e, -Wl,_start /tmp/forth.s
 ```
 
+WARNING: `compile` feature only stands for arm64(macOS) now! And in this mode, stack safe isn't existed!
+
 ### Reference
 
 - [rtforth](https://github.com/chengchangwu/rtforth)
