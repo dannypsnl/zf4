@@ -120,18 +120,18 @@ pub fn compile(file: std.fs.File) !void {
                     current_offset += wordsize;
                     try w.print(
                         \\ldr x0, [sp, {}]
-                        \\stp x29, x30, [sp, 8]
+                        \\str lr, [sp, 8]
                         \\bl printNumberEntry
-                        \\ldp x29, x30, [sp, 8]
+                        \\ldr lr, [sp, 8]
                         \\
                     , .{current_offset});
                 },
                 .print => {
                     try w.print(
                         \\ldr x0, [sp, {}]
-                        \\stp x29, x30, [sp, 8]
+                        \\str lr, [sp, 8]
                         \\bl printNumberEntry
-                        \\ldp x29, x30, [sp, 8]
+                        \\ldr lr, [sp, 8]
                         \\
                     , .{current_offset + wordsize});
                 },
