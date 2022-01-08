@@ -12,13 +12,16 @@ pub fn ForthInterpreter(comptime STACK_SIZE: usize) type {
         stack: [STACK_SIZE]i64 = [_]i64{0} ** STACK_SIZE,
         sp: usize = 0,
         dictionary: std.hash_map.StringHashMap([]Word),
+        pub fn record(self: *Self, newWord: []const u8, seq: []Word) !void {
+            try self.dictionary.put(newWord, seq);
+        }
         pub fn init(alloc: std.mem.Allocator) Self {
             return .{ .dictionary = std.hash_map.StringHashMap([]Word).init(alloc) };
         }
         pub fn deinit(self: *Self) void {
             self.dictionary.deinit();
         }
-        pub fn run(self: *Self, word: Word) !void {
+        pub fn run(self: *Self, word: Word) anyerror!void {
             switch (word) {
                 .plus => {
                     const r = self.pop();
@@ -56,6 +59,12 @@ pub fn ForthInterpreter(comptime STACK_SIZE: usize) type {
                 },
                 .int => |v| {
                     self.push(v);
+                },
+                .word => |w| {
+                    const ws = self.dictionary.get(w).?;
+                    for (ws) |wR| {
+                        try self.run(wR);
+                    }
                 },
             }
         }

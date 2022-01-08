@@ -34,6 +34,9 @@ fn runStream(reader: std.io.Reader(std.fs.File, std.os.ReadError, std.fs.File.re
     defer vm.deinit();
     var buf: [1024]u8 = undefined;
     var in_comment: bool = false;
+    var in_define: bool = false;
+    var seq = std.ArrayList(Word).init(g.allocator());
+    var newWord: []const u8 = undefined;
 
     while (true) {
         const code = (try reader.readUntilDelimiterOrEof(&buf, '\n')) orelse {
@@ -45,16 +48,30 @@ fn runStream(reader: std.io.Reader(std.fs.File, std.os.ReadError, std.fs.File.re
         while (wordIt != null) : (wordIt = words.next()) {
             if (eql(u8, wordIt.?, "(")) {
                 in_comment = true;
-            }
-            if (!in_comment) {
-                const word = try Word.fromString(wordIt.?);
-                if (vm.run(word)) {} else |err| switch (err) {
-                    ForthError.Bye => break,
-                    else => return err,
-                }
-            }
-            if (eql(u8, wordIt.?, ")")) {
+            } else if (eql(u8, wordIt.?, ")")) {
                 in_comment = false;
+                continue;
+            } else if (eql(u8, wordIt.?, ":")) {
+                in_define = true;
+                seq = std.ArrayList(Word).init(g.allocator());
+                newWord = words.next().?;
+                continue;
+            } else if (eql(u8, wordIt.?, ";")) {
+                in_define = false;
+                try vm.record(newWord, seq.toOwnedSlice());
+                continue;
+            }
+            if (in_comment) {
+                continue;
+            }
+            if (in_define) {
+                try seq.append(try Word.fromString(wordIt.?));
+                continue;
+            }
+            const word = try Word.fromString(wordIt.?);
+            if (vm.run(word)) {} else |err| switch (err) {
+                ForthError.Bye => break,
+                else => return err,
             }
         }
         try stdout.print("ok\n", .{});

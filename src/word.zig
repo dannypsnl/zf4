@@ -11,6 +11,7 @@ pub const WordTag = enum {
     print,
     bye,
     int,
+    word,
 };
 pub const Word = union(WordTag) {
     plus: void,
@@ -22,6 +23,7 @@ pub const Word = union(WordTag) {
     print: void,
     bye: void,
     int: i64,
+    word: []const u8,
     pub fn fromString(word: []const u8) !Word {
         if (eql(u8, word, "+")) {
             return .plus;
@@ -40,7 +42,11 @@ pub const Word = union(WordTag) {
         } else if (eql(u8, word, "bye")) {
             return .bye;
         } else {
-            return Word{ .int = try std.fmt.parseInt(i64, word, 10) };
+            if (std.fmt.parseInt(i64, word, 10)) |i| {
+                return Word{ .int = i };
+            } else |_| {
+                return Word{ .word = word };
+            }
         }
     }
 };
