@@ -6,6 +6,7 @@ pub const WordTag = enum {
     sub,
     mul,
     div,
+    dup,
     pop,
     print,
     bye,
@@ -16,6 +17,7 @@ pub const Word = union(WordTag) {
     sub: void,
     mul: void,
     div: void,
+    dup: void,
     pop: void,
     print: void,
     bye: void,
@@ -29,6 +31,8 @@ pub const Word = union(WordTag) {
             return .mul;
         } else if (eql(u8, word, "/")) {
             return .div;
+        } else if (eql(u8, word, "dup")) {
+            return .dup;
         } else if (eql(u8, word, ".")) {
             return .pop;
         } else if (eql(u8, word, ".s")) {

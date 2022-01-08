@@ -40,6 +40,11 @@ pub fn ForthInterpreter(comptime STACK_SIZE: usize) type {
                         const l = self.pop();
                         self.push(@divTrunc(l, r));
                     },
+                    .dup => {
+                        const v = self.pop();
+                        self.push(v);
+                        self.push(v);
+                    },
                     .pop => {
                         try stdout.print("{} ", .{self.pop()});
                     },
