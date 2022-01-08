@@ -11,8 +11,12 @@ pub fn ForthInterpreter(comptime STACK_SIZE: usize) type {
         const Self = @This();
         stack: [STACK_SIZE]i64 = [_]i64{0} ** STACK_SIZE,
         sp: usize = 0,
-        pub fn init() Self {
-            return .{};
+        dictionary: std.hash_map.StringHashMap([]Word),
+        pub fn init(alloc: std.mem.Allocator) Self {
+            return .{ .dictionary = std.hash_map.StringHashMap([]Word).init(alloc) };
+        }
+        pub fn deinit(self: *Self) void {
+            self.dictionary.deinit();
         }
         pub fn run(self: *Self, word: Word) !void {
             switch (word) {

@@ -28,7 +28,10 @@ pub fn main() anyerror!void {
 }
 
 fn runStream(reader: std.io.Reader(std.fs.File, std.os.ReadError, std.fs.File.read)) !void {
-    var vm = Forth(2000).init();
+    var g = std.heap.GeneralPurposeAllocator(.{}){};
+    defer _ = g.deinit();
+    var vm = Forth(2000).init(g.allocator());
+    defer vm.deinit();
     var buf: [1024]u8 = undefined;
     var in_comment: bool = false;
 
